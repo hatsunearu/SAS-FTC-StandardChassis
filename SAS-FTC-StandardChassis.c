@@ -1,6 +1,6 @@
 #pragma config(Hubs,  S1, HTMotor,  HTServo,  HTMotor,  none)
-#pragma config(Motor,  mtr_S1_C1_1,     RDriveMotor,   tmotorTetrix, openLoop, encoder)
-#pragma config(Motor,  mtr_S1_C1_2,     LDriveMotor,   tmotorTetrix, openLoop, reversed, encoder)
+#pragma config(Motor,  mtr_S1_C1_1,     LDriveMotor,   tmotorTetrix, openLoop, encoder)
+#pragma config(Motor,  mtr_S1_C1_2,     RDriveMotor,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C3_1,     FuncMotorA,    tmotorTetrix, openLoop)
 #pragma config(Motor,  mtr_S1_C3_2,     FuncMotorB,    tmotorTetrix, openLoop)
 #pragma config(Servo,  srvo_S1_C2_1,    Servo1,               tServoStandard)
@@ -31,12 +31,11 @@
 
 //BEGIN PROGRAM FLAGS
 //0 for true, 1 for false
-#define JOYSTICK_DEADZONE 0 //1 to enable deadzoning
+#define JOYSTICK_DEADZONE 0 //enable deadzoning
 #define JOYSTICK_LIN_SCALING 0 //enable linear scaling
 
 #define ROBOT_LIMIT_FWD_ACCELERATION 0 //limit motor so change in power over time is limited
 #define ROBOT_HALF_VELOCITY_LIMIT 0 //limit total power as a certain value
-#define ROBOT_COAST 0 //set so robot coasts when stick is centered.
 //END PROGRAM FLAGS
 
 //BEGIN PROGRAM OPTIONS
@@ -44,12 +43,23 @@
 #define ROBOT_ACCELERATION_LIMIT_SENSITIVITY 3 //Limits d/dt Duty Cycle (in percent)
 //END PROGRAM OPTIONS
 
+//button definitions
+#define button1   0x01
+#define button2   0x02
+#define button3   0x04
+#define button4   0x08
+#define button5   0x10
+#define button6   0x20
+#define button7   0x40
+#define button8   0x80
+#define button9  0x100
+#define button10 0x200
+
+
+
 
 
 short jy1_p = 0, jy2_p = 0; //Values of y1 and y2 used previously, required for acc limit
-
-
-
 
 //Filters joystick data and returns motor power output, scaled accordingly
 short filter(short jValue) {
@@ -57,9 +67,6 @@ short filter(short jValue) {
 
 	if(JOYSTICK_DEADZONE && j < JOYSTICK_DEADZONE_SIZE && j > JOYSTICK_DEADZONE_SIZE) //Apply joystick deadzoning
 		j=0;
-
-	if(ROBOT_COAST && !j) //If filtered j value is 0
-		return -128; //Power value of -128 is coast/float mode
 
 	if(!JOYSTICK_LIN_SCALING) { //"Exponential" scaling
 		float temp = ((float)j)/127.0;
@@ -97,12 +104,61 @@ void drive(short jy1, short jy2) {
 		jy2_p = jy2;
 	}
 
-	motor[motorD] = jy1;
-	motor[motorE] = jy2;
+	motor[LDriveMotor] = jy1;
+	motor[RDriveMotor] = jy2;
 
 }
 
+short hatAction() { //Checks hat and does arcade drive if clicked. Returns zero if pad is not pressed, non-zero if some direction is pressed.
 
+	switch(joystick.joy1_TopHat) {
+		case -1: //not pressed
+			return 0;
+
+		case 0: //forward
+			motor[LDriveMotor] = 100;
+			motor[RDriveMotor] = 100;
+		break;
+
+		case 1: //foward right
+			motor[LDriveMotor] = 100;
+			motor[RDriveMotor] = 50;
+		break;
+
+		case 2: //right
+			motor[LDriveMotor] = 100;
+			motor[RDriveMotor] = 0;
+		break;
+
+		case 3: //backward right
+			motor[LDriveMotor] = -100;
+			motor[RDriveMotor] = -50;
+		break;
+
+		case 4: //backward
+			motor[LDriveMotor] = -100;
+			motor[RDriveMotor] = -100;
+		break;
+
+		case 5: //backward left
+			motor[LDriveMotor] = -50;
+			motor[RDriveMotor] = -100;
+		break;
+
+		case 6: //left
+			motor[LDriveMotor] = 0;
+			motor[RDriveMotor] = 100;
+		break;
+
+		case 7: //forward left
+			motor[LDriveMotor] = 50;
+			motor[RDriveMotor] = 100;
+		break;
+
+	}
+	return 1;
+
+}
 
 //Pre-teleop, post-autonomous phase, autonomous action to init robot. Must time-out in a short amount of time to pass to teleop code
 void initializeRobot() {
@@ -120,7 +176,8 @@ task main() {
 
   	getJoystickSettings(joystick);
 
-  	drive(joystick.joy1_y2, joystick.joy1_y1);
+  	if( !hatAction() ) //If hat is not pressed
+  		drive(joystick.joy1_y1, joystick.joy1_y2); //Use joystick to drive
 
   	wait1Msec(10); //sleep 10ms to stabilize code execution.
 

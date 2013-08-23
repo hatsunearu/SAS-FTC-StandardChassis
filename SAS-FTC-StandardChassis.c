@@ -31,8 +31,8 @@
 
 //BEGIN PROGRAM FLAGS
 //0 for true, 1 for false
-#define JOYSTICK_DEADZONE 1 //1 to enable deadzoning
-#define JOYSTICK_LIN_SCALING 1 //enable linear scaling
+#define JOYSTICK_DEADZONE 0 //1 to enable deadzoning
+#define JOYSTICK_LIN_SCALING 0 //enable linear scaling
 
 #define ROBOT_LIMIT_FWD_ACCELERATION 0 //limit motor so change in power over time is limited
 #define ROBOT_HALF_VELOCITY_LIMIT 0 //limit total power as a certain value
@@ -41,7 +41,7 @@
 
 //BEGIN PROGRAM OPTIONS
 #define JOYSTICK_DEADZONE_SIZE 2
-#define ROBOT_ACCELERATION_LIMIT_SENSITIVITY 2 //Limits d/dt Duty Cycle (in percent)
+#define ROBOT_ACCELERATION_LIMIT_SENSITIVITY 3 //Limits d/dt Duty Cycle (in percent)
 //END PROGRAM OPTIONS
 
 
@@ -58,7 +58,7 @@ short filter(short jValue) {
 	if(JOYSTICK_DEADZONE && j < JOYSTICK_DEADZONE_SIZE && j > JOYSTICK_DEADZONE_SIZE) //Apply joystick deadzoning
 		j=0;
 
-	if(!ROBOT_COAST && !j) //If filtered j value is 0
+	if(ROBOT_COAST && !j) //If filtered j value is 0
 		return -128; //Power value of -128 is coast/float mode
 
 	if(!JOYSTICK_LIN_SCALING) { //"Exponential" scaling
@@ -66,7 +66,7 @@ short filter(short jValue) {
 		j=(int)(100.001*temp*temp*temp); //y = 100.1 * (x/127)^3; 0.1 to ensure; close approximation to exponential function
 	}
 	else {
-		j*=100/127;	//Linear scaling to -100 ~ 100
+		j*=100.0/127.0;	//Linear scaling to -100 ~ 100
 	}
 
 	return j;
@@ -77,13 +77,13 @@ void drive(short jy1, short jy2) {
 	jy1 = filter(jy1);
 	jy2 = filter(jy2);
 
+	if(ROBOT_LIMIT_FWD_ACCELERATION) {
+		int delta = jy1 - jy1_p;
+
 	if(ROBOT_HALF_VELOCITY_LIMIT) {
 		jy1 /= 2;
 		jy2 /= 2;
 	}
-
-	if(ROBOT_LIMIT_FWD_ACCELERATION) {
-		unsigned short delta = jy1 - jy1_p;
 
 		if((delta) * (jy1) > 0 && abs(delta) > ROBOT_ACCELERATION_LIMIT_SENSITIVITY ) //If robot is accelerating the direction of velocity (sign of jy1-jy1_p and jy1 is same)
 			jy1 = (abs(delta)/delta)*ROBOT_ACCELERATION_LIMIT_SENSITIVITY + jy1_p;

@@ -31,8 +31,8 @@
 
 //BEGIN PROGRAM FLAGS
 //0 for true, 1 for false
-#define JOYSTICK_NO_DEADZONE 0 //0 to enable deadzoning
-#define JOYSTICK_LIN_SCALING 0 //enable cubic stick scaling
+#define JOYSTICK_DEADZONE 1 //1 to enable deadzoning
+#define JOYSTICK_LIN_SCALING 1 //enable linear scaling
 
 #define ROBOT_LIMIT_FWD_ACCELERATION 0 //limit motor so change in power over time is limited
 #define ROBOT_HALF_VELOCITY_LIMIT 0 //limit total power as a certain value
@@ -49,28 +49,13 @@
 short jy1_p = 0, jy2_p = 0; //Values of y1 and y2 used previously, required for acc limit
 
 
-task main() {
-  initializeRobot();
-
-  waitForStart();   //Stop until teleop starts
-
-  while (1) {
-
-  	getJoystickSettings(joystick);
-
-  	drive(joystick.joy1_y2, joystick.joy1_y1);
-
-  	wait1Msec(10); //sleep 10ms to stabilize code execution.
-
-  }
-}
 
 
 //Filters joystick data and returns motor power output, scaled accordingly
 short filter(short jValue) {
 	short j = jValue;
 
-	if(!JOYSTICK_NO_DEADZONE && j < JOYSTICK_DEADZONE_SIZE && j > JOYSTICK_DEADZONE_SIZE) //Apply joystick deadzoning
+	if(JOYSTICK_DEADZONE && j < JOYSTICK_DEADZONE_SIZE && j > JOYSTICK_DEADZONE_SIZE) //Apply joystick deadzoning
 		j=0;
 
 	if(!ROBOT_COAST && !j) //If filtered j value is 0
@@ -124,4 +109,20 @@ void initializeRobot() {
 
 
   return;
+}
+
+task main() {
+  initializeRobot();
+
+  waitForStart();   //Stop until teleop starts
+
+  while (1) {
+
+  	getJoystickSettings(joystick);
+
+  	drive(joystick.joy1_y2, joystick.joy1_y1);
+
+  	wait1Msec(10); //sleep 10ms to stabilize code execution.
+
+  }
 }

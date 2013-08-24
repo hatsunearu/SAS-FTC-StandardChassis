@@ -120,18 +120,8 @@ short hatAction() { //Checks hat and does arcade drive if clicked. Returns zero 
 			motor[RDriveMotor] = 100;
 		break;
 
-		case 1: //foward right
-			motor[LDriveMotor] = 100;
-			motor[RDriveMotor] = 50;
-		break;
-
 		case 2: //right
 			motor[LDriveMotor] = 100;
-			motor[RDriveMotor] = 0;
-		break;
-
-		case 3: //backward right
-			motor[LDriveMotor] = -100;
 			motor[RDriveMotor] = -50;
 		break;
 
@@ -140,20 +130,11 @@ short hatAction() { //Checks hat and does arcade drive if clicked. Returns zero 
 			motor[RDriveMotor] = -100;
 		break;
 
-		case 5: //backward left
-			motor[LDriveMotor] = -50;
-			motor[RDriveMotor] = -100;
-		break;
-
 		case 6: //left
-			motor[LDriveMotor] = 0;
+			motor[LDriveMotor] = -50;
 			motor[RDriveMotor] = 100;
 		break;
 
-		case 7: //forward left
-			motor[LDriveMotor] = 50;
-			motor[RDriveMotor] = 100;
-		break;
 
 	}
 	return 1;
@@ -176,7 +157,7 @@ task main() {
 
   	getJoystickSettings(joystick);
 
-  	if( !hatAction() ) //If hat is not pressed
+  	if( !hatAction() ) //If hat is not pressed2
   		drive(joystick.joy1_y1, joystick.joy1_y2); //Use joystick to drive
 
   	wait1Msec(10); //sleep 10ms to stabilize code execution.

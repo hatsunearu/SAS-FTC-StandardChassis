@@ -1,4 +1,5 @@
 #pragma config(Hubs,  S1, HTMotor,  HTServo,  HTMotor,  none)
+#pragma config(Sensor, S1,     ,               sensorI2CMuxController)
 #pragma config(Sensor, S4,     soundSensor,    sensorSoundDB)
 #pragma config(Motor,  mtr_S1_C1_1,     RDriveMotor,   tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     LDriveMotor,   tmotorTetrix, openLoop, reversed, encoder)
@@ -114,9 +115,9 @@ void initializeRobot() {
 
 //Raising red flag as alert action
 void raiseFlag(){
-	motor[Servo1] = 127;
+	servoTarget[Servo1] = 128;
 	wait1Msec(2000);
-	motor[Servo1] = 0;
+	servoTarget[Servo2] = 0;
 }
 
 task main() {

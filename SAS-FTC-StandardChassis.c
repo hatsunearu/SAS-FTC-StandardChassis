@@ -77,11 +77,11 @@ short filter(short jValue) {
 		return -128; //Power value of -128 is coast/float mode
 
 	if(!JOYSTICK_LIN_SCALING) { //"Exponential" scaling
-		float temp = ((float)j)/127.0;
-		j=(int)(100.001*temp*temp*temp); //y = 100.1 * (x/127)^3; 0.1 to ensure; close approximation to exponential function
+		int temp = j*j*j;
+		j = temp/16384;
 	}
 	else {
-		j*=100/127;	//Linear scaling to -100 ~ 100
+		j*=100/128;	//Linear scaling to -100 ~ 100
 	}
 
 	return j;

@@ -1,4 +1,5 @@
 #pragma config(Hubs,  S1, HTMotor,  HTServo,  HTMotor,  none)
+#pragma config(Sensor, S4,     soundSensor,    sensorSoundDB)
 #pragma config(Motor,  mtr_S1_C1_1,     RDriveMotor,   tmotorTetrix, openLoop, encoder)
 #pragma config(Motor,  mtr_S1_C1_2,     LDriveMotor,   tmotorTetrix, openLoop, reversed, encoder)
 #pragma config(Motor,  mtr_S1_C3_1,     FuncMotorA,    tmotorTetrix, openLoop)
@@ -49,21 +50,6 @@
 short jy1_p = 0, jy2_p = 0; //Values of y1 and y2 used previously, required for acc limit
 
 
-task main() {
-  initializeRobot();
-
-  waitForStart();   //Stop until teleop starts
-
-  while (1) {
-
-  	getJoystickSettings(joystick);
-
-  	drive(joystick.joy1_y2, joystick.joy1_y1);
-
-  	wait1Msec(10); //sleep 10ms to stabilize code execution.
-
-  }
-}
 
 
 //Filters joystick data and returns motor power output, scaled accordingly
@@ -124,4 +110,30 @@ void initializeRobot() {
 
 
   return;
+}
+
+//Raising red flag as alert action
+void raiseFlag(){
+	motor[Servo1] = 127;
+	wait1Msec(2000);
+	motor[Servo1] = 0;
+}
+
+task main() {
+  initializeRobot();
+
+  waitForStart();   //Stop until teleop starts
+
+  while (1) {
+
+  	if(SensorValue(soundSensor)>90){
+  		raiseFlag();
+  	} else {
+  		getJoystickSettings(joystick);
+  		drive(joystick.joy1_y2, joystick.joy1_y1);
+  	}
+
+  	wait1Msec(10); //sleep 10ms to stabilize code execution.
+
+  }
 }
